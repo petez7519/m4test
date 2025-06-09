@@ -3,12 +3,21 @@ version: 2.1
 jobs:
   hello-world:
     macos:
-      xcode: 16.4
+      xcode: 16.4.0
+      xcode: 16.2.0
     resource_class: m4pro.medium
     steps:
       - run:
           name: Print Hello World
           command: echo "Hello World"
+      - run:
+          name: Check Xcode Version
+          command: |
+            echo "=== Xcode Version ==="
+            xcodebuild -version
+            echo ""
+            echo "=== Available Xcode Installations ==="
+            ls -la /Applications/ | grep Xcode
       - run:
           name: Show System Information (About This Mac)
           command: |
