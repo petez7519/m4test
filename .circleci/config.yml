@@ -1,0 +1,21 @@
+version: 2.1
+
+jobs:
+  hello-world:
+    macos:
+      xcode: 16.4
+    resource_class: m2pro.medium
+    steps:
+      - run:
+          name: Print Hello World
+          command: echo "Hello World"
+      - run:
+          name: Show System Information (About This Mac)
+          command: |
+            echo "=== System Information ==="
+            system_profiler SPSoftwareDataType SPHardwareDataType
+
+workflows:
+  main:
+    jobs:
+      - hello-world
