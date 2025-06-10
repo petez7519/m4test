@@ -3,7 +3,7 @@ jobs:
   hello-world:
     macos:
       xcode: 16.4.0
-    resource_class: m2pro.medium
+    resource_class: m4pro.medium
     steps:
       - run:
           name: Print Hello World
