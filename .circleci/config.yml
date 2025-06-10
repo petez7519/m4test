@@ -58,7 +58,7 @@ jobs:
                 mkdir -p cmake_test
                 cd cmake_test
                 
-                cat > CMakeLists.txt << 'EOF'
+                cat > CMakeLists.txt \<< 'EOF'
             cmake_minimum_required(VERSION 3.10)
             project(HelloCMake)
             
@@ -66,7 +66,7 @@ jobs:
             add_executable(hello_cmake main.cpp)
             EOF
                 
-                cat > main.cpp << 'EOF'
+                cat > main.cpp \<< 'EOF'
             #include <iostream>
             int main() {
                 std::cout << "Hello from CMake!" << std::endl;
