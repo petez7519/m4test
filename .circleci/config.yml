@@ -17,6 +17,21 @@ jobs:
             echo "=== Available Xcode Installations ==="
             ls -la /Applications/ | grep Xcode
       - run:
+          name: Install CMake via Homebrew
+          command: |
+            echo "=== Installing CMake ==="
+            if command -v brew &> /dev/null; then
+                echo "✅ Homebrew is available"
+                echo "Installing CMake..."
+                brew install cmake
+                echo "✅ CMake installation completed"
+            else
+                echo "❌ Homebrew not found - installing Homebrew first"
+                /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+                echo "✅ Homebrew installed, now installing CMake..."
+                brew install cmake
+                echo "✅ CMake installation completed"
+      - run:
           name: Check CMake Installation
           command: |
             echo "=== CMake Check ==="
