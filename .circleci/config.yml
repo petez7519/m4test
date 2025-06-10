@@ -1,5 +1,4 @@
 version: 2.1
-
 jobs:
   hello-world:
     macos:
@@ -18,11 +17,89 @@ jobs:
             echo "=== Available Xcode Installations ==="
             ls -la /Applications/ | grep Xcode
       - run:
+          name: Check CMake Installation
+          command: |
+            echo "=== CMake Check ==="
+            if command -v cmake &> /dev/null; then
+                echo "✅ CMake is installed"
+                cmake --version
+                echo ""
+                echo "CMake installation path:"
+                which cmake
+                echo ""
+                echo "CMake configuration info:"
+                cmake --help | head -20
+            else
+                echo "❌ CMake is not installed"
+                echo ""
+                echo "Available package managers for installing CMake:"
+                if command -v brew &> /dev/null; then
+                    echo "✅ Homebrew is available - you can install with: brew install cmake"
+                else
+                    echo "❌ Homebrew not found"
+                fi
+                
+                if command -v port &> /dev/null; then
+                    echo "✅ MacPorts is available - you can install with: sudo port install cmake"
+                else
+                    echo "❌ MacPorts not found"
+                fi
+                
+                echo ""
+                echo "You can also download CMake from: https://cmake.org/download/"
+                exit 1
+            fi
+      - run:
+          name: Test CMake Functionality
+          command: |
+            echo "=== Testing CMake Functionality ==="
+            if command -v cmake &> /dev/null; then
+                # Create a simple CMakeLists.txt for testing
+                mkdir -p cmake_test
+                cd cmake_test
+                
+                cat > CMakeLists.txt << 'EOF'
+            cmake_minimum_required(VERSION 3.10)
+            project(HelloCMake)
+            
+            # Create a simple executable
+            add_executable(hello_cmake main.cpp)
+            EOF
+                
+                cat > main.cpp << 'EOF'
+            #include <iostream>
+            int main() {
+                std::cout << "Hello from CMake!" << std::endl;
+                return 0;
+            }
+            EOF
+                
+                echo "Created test CMake project:"
+                ls -la
+                echo ""
+                
+                echo "Running cmake configure..."
+                cmake -B build -S .
+                
+                echo ""
+                echo "Running cmake build..."
+                cmake --build build
+                
+                echo ""
+                echo "Running the compiled program..."
+                ./build/hello_cmake
+                
+                echo ""
+                echo "✅ CMake test completed successfully"
+            else
+                echo "❌ Skipping CMake functionality test - CMake not available"
+                exit 1
+            fi
+      - run:
           name: Show System Information (About This Mac)
           command: |
             echo "=== System Information ==="
             system_profiler SPSoftwareDataType SPHardwareDataType
-
 workflows:
   main:
     jobs:
