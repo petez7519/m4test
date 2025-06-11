@@ -31,6 +31,7 @@ jobs:
                 echo "✅ Homebrew installed, now installing CMake..."
                 brew install cmake
                 echo "✅ CMake installation completed"
+            fi
       - run:
           name: Check CMake Installation
           command: |
