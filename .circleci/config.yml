@@ -11,14 +11,20 @@ jobs:
       - run:
           name: Check Xcode Version
           command: |
+            set -e
             echo "=== Xcode Version ==="
             xcodebuild -version
             echo ""
             echo "=== Available Xcode Installations ==="
             ls -la /Applications/ | grep Xcode
+      - restore_cache:
+          keys:
+            - homebrew-v1-{{ arch }}
+            - homebrew-v1-
       - run:
           name: Install CMake via Homebrew
           command: |
+            set -e
             echo "=== Installing CMake ==="
             if command -v brew &> /dev/null; then
                 echo "✅ Homebrew is available"
@@ -28,13 +34,34 @@ jobs:
             else
                 echo "❌ Homebrew not found - installing Homebrew first"
                 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-                echo "✅ Homebrew installed, now installing CMake..."
+                echo "✅ Homebrew installed"
+                
+                # Set up Homebrew PATH for current session and future sessions
+                echo "Setting up Homebrew PATH..."
+                if [[ $(uname -m) == "arm64" ]]; then
+                    # Apple Silicon
+                    echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zshrc
+                    eval "$(/opt/homebrew/bin/brew shellenv)"
+                else
+                    # Intel
+                    echo 'eval "$(/usr/local/bin/brew shellenv)"' >> ~/.zshrc
+                    eval "$(/usr/local/bin/brew shellenv)"
+                fi
+                
+                echo "Installing CMake..."
                 brew install cmake
                 echo "✅ CMake installation completed"
             fi
+      - save_cache:
+          key: homebrew-v1-{{ arch }}
+          paths:
+            - /opt/homebrew
+            - /usr/local/Homebrew
+            - ~/.cache/Homebrew
       - run:
           name: Check CMake Installation
           command: |
+            set -e
             echo "=== CMake Check ==="
             if command -v cmake &> /dev/null; then
                 echo "✅ CMake is installed"
@@ -68,8 +95,24 @@ jobs:
       - run:
           name: Show System Information (About This Mac)
           command: |
+            set -e
             echo "=== System Information ==="
             system_profiler SPSoftwareDataType SPHardwareDataType
+      - run:
+          name: Show Environment and PATH
+          command: |
+            set -e
+            echo "=== Environment Information ==="
+            echo "Current PATH:"
+            echo $PATH
+            echo ""
+            echo "Current Shell:"
+            echo $SHELL
+            echo ""
+            echo "Available Commands:"
+            echo "brew: $(command -v brew || echo 'not found')"
+            echo "cmake: $(command -v cmake || echo 'not found')"
+            echo "xcodebuild: $(command -v xcodebuild || echo 'not found')"
 workflows:
   main:
     jobs:
