@@ -1,0 +1,61 @@
+version: 2.1
+
+parameters:
+  xcode_version:
+    type: string
+    default: "15.3.0"
+  app_scheme:
+    type: string
+    default: "MyApp"
+  artifact_path:
+    type: string
+    default: "build/MyApp.ipa"
+
+executors:
+  mac_build:
+    macos:
+      xcode: << parameters.xcode_version >>
+    working_directory: ~/project
+
+  signing_node:
+    docker:
+      - image: cimg/base:stable
+    resource_class: medium
+    working_directory: ~/signing
+
+jobs:
+  build_app:
+    executor: mac_build
+    steps:
+      - checkout
+      - run:
+          name: Build .ipa
+          command: |
+            xcodebuild -scheme << parameters.app_scheme >> -configuration Release -archivePath build/MyApp.xcarchive archive
+            xcodebuild -exportArchive -archivePath build/MyApp.xcarchive -exportPath build -exportOptionsPlist ExportOptions.plist
+      - persist_to_workspace:
+          root: build
+          paths:
+            - MyApp.ipa
+
+  sign_artifact:
+    executor: signing_node
+    steps:
+      - attach_workspace:
+          at: ~/signing
+      - run:
+          name: Sign .ipa
+          command: |
+            ./scripts/sign.sh ~/signing/MyApp.ipa
+      - store_artifacts:
+          path: ~/signing/MyApp-signed.ipa
+          destination: signed/MyApp.ipa
+
+workflows:
+  version: 2
+  build_and_sign:
+    jobs:
+      - build_app
+      - sign_artifact:
+          requires:
+            - build_app
