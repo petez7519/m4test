@@ -1,5 +1,6 @@
 version: 2.1
 
+# 🔧 Top-Level Parameters
 parameters:
   xcode_version:
     type: string
@@ -11,6 +12,7 @@ parameters:
     type: string
     default: "build/MyApp.ipa"
 
+# 🧱 Executors
 executors:
   mac_build:
     macos:
@@ -23,8 +25,14 @@ executors:
     resource_class: medium
     working_directory: ~/signing
 
+# 🛠 Jobs
 jobs:
   build_app:
+    parameters:
+      app_scheme:
+        type: string
+      artifact_path:
+        type: string
     executor: mac_build
     steps:
       - checkout
@@ -39,6 +47,9 @@ jobs:
             - MyApp.ipa
 
   sign_artifact:
+    parameters:
+      artifact_path:
+        type: string
     executor: signing_node
     steps:
       - attach_workspace:
@@ -46,16 +57,20 @@ jobs:
       - run:
           name: Sign .ipa
           command: |
-            ./scripts/sign.sh ~/signing/MyApp.ipa
+            ./scripts/sign.sh << parameters.artifact_path >>
       - store_artifacts:
           path: ~/signing/MyApp-signed.ipa
           destination: signed/MyApp.ipa
 
+# 🔁 Workflow
 workflows:
   version: 2
   build_and_sign:
     jobs:
-      - build_app
+      - build_app:
+          app_scheme: << pipeline.parameters.app_scheme >>
+          artifact_path: << pipeline.parameters.artifact_path >>
       - sign_artifact:
           requires:
             - build_app
+          artifact_path: << pipeline.parameters.artifact_path >>
